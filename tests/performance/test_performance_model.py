@@ -1533,3 +1533,17 @@ def test_get_covariance_matrix_is_the_sample_covariance():
 
     with pytest.raises(TypeError):
         performance_model.get_covariance_matrix(returns["X"])
+
+
+def test_sharpe_ratio_series_keeps_within_period_groups():
+    periods = pd.PeriodIndex(["2026-01"] * 3 + ["2026-02"] * 3, freq="M")
+    index = pd.MultiIndex.from_arrays([periods, [0, 1, 2, 0, 1, 2]])
+    returns = pd.Series([-0.02, 0.0, 0.02, 0.02, 0.04, 0.06], index=index, name="AAPL")
+    expected = pd.Series(
+        [0.0, 2.0], index=pd.PeriodIndex(["2026-01", "2026-02"], freq="M"), name="AAPL"
+    )
+
+    actual = performance_model.get_sharpe_ratio(returns)
+    pd.testing.assert_series_equal(actual, expected)
+    frame_result = performance_model.get_sharpe_ratio(returns.to_frame())["AAPL"]
+    pd.testing.assert_series_equal(actual, frame_result)

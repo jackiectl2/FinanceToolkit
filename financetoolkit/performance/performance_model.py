@@ -1275,18 +1275,12 @@ def get_sharpe_ratio(
         period" Multi Index, one value is returned per period (with time as index);
         otherwise a single value is returned per column (or overall, for a Series).
     """
-    if isinstance(excess_returns, pd.DataFrame):
+    if isinstance(excess_returns, pd.Series | pd.DataFrame):
         if excess_returns.index.nlevels == MULTI_PERIOD_INDEX_LEVELS:
-            # Calculate Sharpe ratio for each asset (ticker) in the DataFrame
-            sharpe_ratios = excess_returns.groupby(level=0).apply(
-                lambda x: x.mean() / x.std()
+            return excess_returns.groupby(level=0).apply(
+                lambda period: period.mean() / period.std()
             )
-            return sharpe_ratios
 
-        return excess_returns.mean() / excess_returns.std()
-
-    if isinstance(excess_returns, pd.Series):
-        # Calculate Sharpe ratio for a single asset (ticker)
         return excess_returns.mean() / excess_returns.std()
 
     raise TypeError("Expects pd.DataFrame or pd.Series, no other value.")
